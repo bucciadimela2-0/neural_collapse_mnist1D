@@ -1,0 +1,5 @@
+cv2024/
+cv2025/
+nc_env/
+__pycache__/
+mnsit1d_data.pkl

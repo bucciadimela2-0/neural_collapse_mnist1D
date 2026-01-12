@@ -1,0 +1,7 @@
+numpy
+torch
+matplotlib
+git+https://github.com/greydanus/mnist1d
+IPython
+seaborn
+scikit-learn
