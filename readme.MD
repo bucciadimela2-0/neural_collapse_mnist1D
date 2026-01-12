@@ -33,14 +33,17 @@ python main_nc.py
 > Please, always check if the configuration file it's correct
 </details>
 
-## 🧪 Experiment 1 — Baseline Neural Collapse with SGD
+ 🧪 Experiment 1 — Baseline Neural Collapse with SGD
 
 As a first experiment, we reproduce the **canonical Neural Collapse setting** described by Papyan et al. (2020) by training a **CNN-1D on MNIST-1D using standard SGD** for a sufficiently long horizon (200 epochs).
 The goal of this experiment is to establish a **reference collapse trajectory** in which:
 - training reaches the **interpolation regime**,
 - the **Training Phase Transition (TPT)** is crossed,
 - and the network converges toward the **Neural Collapse fixed point**.
+
 During training we track the four core Neural Collapse metrics:
+
+
 | Metric | Interpretation |
 |--------|----------------|
 | **NC1** | Within-class feature collapse |
@@ -78,7 +81,7 @@ Linear Classifier
 </details>
 <details> <summary>Training Dynamics </summary>
 <div align="center">
-<img src="img/20260112_203458_1_training_metrics.png" width="800"/>
+<img src="img/20260112_203458/20260112_203458_1_training_metrics.png" width="800"/>
 </div>
 
 The dashed vertical line marks the **TPT**, after which training accuracy saturates and the loss enters a low-noise regime.  
@@ -87,7 +90,7 @@ This phase transition is where Neural Collapse is theoretically expected to begi
 <details> <summary>Neural Collapse Metrics </summary>
 
 <div align="center">
-<img src="img/20260112_203458_2_nc_metrics.png" width="900"/>
+<img src="img/20260112_203458/20260112_203458_2_nc_metrics.png" width="900"/>
 </div>
 
 The four Neural Collapse conditions are measured during training:
