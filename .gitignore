@@ -3,3 +3,6 @@ cv2025/
 nc_env/
 __pycache__/
 mnsit1d_data.pkl
+.gitignore
+.DS_Store
+
