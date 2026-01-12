@@ -1,8 +1,30 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+nc_env/
+
+# Data files
+*.pkl
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+
+# Project-specific output
 cv2024/
 cv2025/
-nc_env/
-__pycache__/
-mnsit1d_data.pkl
-.gitignore
-.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs and temp
+*.log
+*.tmp
+
+# VSCode
+.vscode/
 
