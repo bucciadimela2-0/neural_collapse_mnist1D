@@ -362,9 +362,9 @@ def plot_optimizer_comparison(results, out_dir=None, run_ts=None,
     }
 
 def plot_layerwise_grid(history, layer_names, out_dir, run_ts, name="4_layerwise_nc.png"):
-    """
-    Plot grid: Layers (rows) × NC Metrics (columns)
-    """
+    
+    #Plot grid: Layers (rows) × NC Metrics (columns)
+    
 
     if out_dir is None or run_ts is None:
         out_dir, run_ts = make_img_dir("img")

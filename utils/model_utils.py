@@ -17,21 +17,10 @@ def train(
     num_epochs=200,
     eval_every=1,
     device="cpu",
-    layer_names=None,              # <-- NEW: abilita layer-wise se lista
-    layer_eval_every=None,         # <-- NEW: frequenza layer-wise (default=eval_every)
+    layer_names=None,              
+    layer_eval_every=None,         
 ):
-    """
-    Training loop con supporto per diversi ottimizzatori.
 
-    Se layer_names è None:
-        - calcola NC classico (penultimate) con compute_nc_metrics
-        - history: defaultdict(list)
-
-    Se layer_names è lista:
-        - calcola NC per layer con extract_layer_features + compute_layer_nc_metrics
-        - history_global: info globali
-        - history_layerwise: NC per layer
-    """
 
     train_ds = TensorDataset(torch.FloatTensor(x_train), torch.LongTensor(y_train))
     test_ds  = TensorDataset(torch.FloatTensor(x_test),  torch.LongTensor(y_test))
@@ -61,7 +50,7 @@ def train(
 
     for epoch in range(num_epochs):
 
-        # ========== TRAINING ==========
+        # Training
         if optimizer_name == "LBFGS":
             train_loss, train_acc = train_epoch_lbfgs(model, train_loader, optimizer, criterion, device)
         else:
@@ -70,28 +59,26 @@ def train(
         if scheduler is not None:
             scheduler.step()
 
-        # ========== TPT DETECTION ==========
+        # tpt detection
         if train_acc >= 0.999 and tpt_start_epoch is None:
             tpt_start_epoch = epoch
             print(f"\n🎯 TPT STARTS @ Epoch {epoch}\n")
 
-        # ========== EVALUATION ==========
+        # eval
         if epoch % eval_every == 0 or epoch == num_epochs - 1:
             val_loss, test_acc = evaluate(model, test_loader, criterion, device)
 
-            # ---- salva sempre history "base" (compatibilità) ----
+            
             history["epoch"].append(epoch)
             history["train_acc"].append(train_acc)
             history["test_acc"].append(test_acc)
             history["train_loss"].append(train_loss)
             history["val_loss"].append(val_loss)
 
-            # ======================================================
-            # NC COMPUTATION: classico (penultimate) O layer-wise
-            # ======================================================
+            #NC computation, penultimate layer
             nc1 = nc2 = nc3 = nc4 = None
 
-            # ---- Caso A: NC classico ----
+            # ---- Case A: NC classico ----
             if layer_names is None:
                 metrics, H, means = compute_nc_metrics(model, test_loader, device)
 
@@ -105,9 +92,9 @@ def train(
                     metrics.get("NC4_ncc"),
                 )
 
-            # ---- Caso B: Layer-wise NC ----
+            # ---- Case B: Layer-wise NC ----
             else:
-                # calcola layer-wise solo ogni layer_eval_every (per velocità)
+                # compute only layer_eval_every epochs
                 if (epoch % layer_eval_every == 0) or (epoch == num_epochs - 1):
 
                     layer_features, labels = extract_layer_features(
@@ -119,7 +106,7 @@ def train(
 
                     layer_metrics = compute_layer_nc_metrics(layer_features, labels)
 
-                    # salva global anche in history_layerwise
+                    # saves global metrics
                     hg = history_layerwise["global"]
                     hg["epoch"].append(epoch)
                     hg["train_acc"].append(train_acc)
@@ -127,14 +114,14 @@ def train(
                     hg["train_loss"].append(train_loss)
                     hg["val_loss"].append(val_loss)
 
-                    # salva per layer (+ epoch per plotting corretto)
+                    # Saves per layer
                     for lname in layer_names:
                         history_layerwise[lname]["epoch"].append(epoch)
                         m = layer_metrics.get(lname, {})
                         for mk, mv in m.items():
                             history_layerwise[lname][mk].append(mv)
 
-                    # per progress bar mostro penultimate se esiste
+                    # per progress bar
                     pen = layer_metrics.get("penultimate", layer_metrics.get("feature_transform", {}))
                     nc1 = pen.get("NC1", None)
                     nc2 = pen.get("NC2", None)
@@ -151,20 +138,16 @@ def train(
                 nc1=nc1, nc2=nc2, nc3=nc3, nc4=nc4,
             )
 
-    # ========== FINAL EVALUATION ==========
+    # final eval
     final_metrics, H_final, means_final = compute_nc_metrics(model, test_loader, device)
 
-    # ritorni:
-    # - se layerwise: aggiungo history_layerwise come output extra
-    if history_layerwise is not None:
+    
+    if history_layerwise is not None: #if layer_wise, history_layerwise is added
         return model, history, history_layerwise, final_metrics, H_final, means_final, tpt_start_epoch
 
     return model, history, final_metrics, H_final, means_final, tpt_start_epoch
 
-
-# ============================================================================
-# OPTIMIZER FACTORY
-# ============================================================================
+#Optimizer Factory
 def get_optimizer(model, optimizer_name):
     #create optimizer
     optimizers = {
@@ -264,7 +247,7 @@ def evaluate(model, loader, criterion, device):
     return avg_loss, accuracy
 
 def extract_layer_features(model, loader, device, layer_names):
-    """Extract features from all specified layers"""
+   #Extract features from all specified layers
     model.eval()
     layer_features = {name: [] for name in layer_names}
     labels_list = []

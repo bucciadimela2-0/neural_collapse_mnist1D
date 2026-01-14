@@ -28,6 +28,46 @@ python main_nc.py
 ```
 > Please, always check if the configuration file it's correct
 </details>
+<details><summary> Project structure </summary>
+
+<br>
+
+
+
+
+```
+.
+├── model/
+│   ├── cnn1D.py
+│   │   └── CNN-1D architecture used in all experiments
+│   └── cnn1D_layerwise.py
+│       └── CNN-1D variant with explicit layer access for layer-wise NC analysis
+├── experiments/
+│   ├── run_opt_comparison.py
+│   │   └── Optimizer ablation study (SGD, Adam, LBFGS)
+│   ├── run_layerwise.py
+│   │ └── Layer-wise Neural Collapse experiments
+│   └── run_standard.py
+│     └── Neural Collpase experiment
+├── utils/
+│   ├── data.py
+│   │   └── MNIST-1D dataset loading and preprocessing
+│   ├── plot_utils.py
+│   │   └── All plotting utilities (training curves, NC evolution, layer-wise plots)
+│   ├── model_utils.py
+│   │   └── Feature extraction helpers and hooks
+│   └── ProgressBar.py
+│       └── Lightweight training progress visualization
+├── img/
+│   └── <timestamped_run>/
+│       └── Saved figures for each experiment
+├── main_nc.py
+│   └── Entry point to reproduce all experiments
+├── nc_metrics.py
+└── README.md
+```
+
+</details>
 <details>
 <summary>Model Architecture — CNN-1D</summary>
 
@@ -56,6 +96,8 @@ Linear Classifier
 (128 → 10)
 ```
 </details>
+
+
 <br>
 
 
@@ -106,9 +148,19 @@ Our layer-wise analysis reveals that:
 - intermediate layers progressively approach the Neural Collapse regime,
 - the penultimate layer fully satisfies all NC conditions.
 
+Our findings are consistent with recent empirical studies on Intermediate Neural Collapse (Rangamani et al., ICML 2023), which show that Neural Collapse emerges progressively across network depth and is fully realized only in the penultimate layer.
+
+>Rangamani, A., Arora, S., Banburski, A., Boix-Adserà, E., Geiger, M., & Poggio, T. (2023).
+Feature Learning in Deep Classifiers through Intermediate Neural Collapse.
+Proceedings of the 40th International Conference on Machine Learning (ICML).
+https://arxiv.org/abs/2308.02760
+
+
+
 <details> <summary>Neural Collapse Metrics </summary>
 
 *Layer-wise evolution of Neural Collapse metrics (NC1, NC2, NC4). Neural Collapse emerges progressively with network depth, reaching full manifestation at the penultimate layer.*
+
 <br>
 <div align="center">
 <img src="img/20260113_182532/20260113_182532_4_layerwise_nc.png.png" width="600"/>
@@ -122,5 +174,7 @@ Our layer-wise analysis reveals that:
 
 ## 🧪 Experiment 3 — Optimization Effects on Neural Collapse
 
+In this experiment, we investigate how different optimization algorithms affect the emergence and stability of Neural Collapse.
+While Neural Collapse is often studied under standard SGD, recent theoretical work suggests that its geometric properties may persist across a broader class of training dynamics.
 
 >Zhu, Z., Ding, T., Zhou, J., Li, X., You, C., Sulam, J., & Qu, Q. (2021).  *A Geometric Analysis of Neural Collapse with Unconstrained Features*. International Conference on Learning Representations (ICLR).

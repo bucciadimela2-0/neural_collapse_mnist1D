@@ -2,7 +2,7 @@ import torch.nn as nn
 
 
 class CNN1D_LayerWise(nn.Module):
-    """CNN with layer-wise feature extraction"""
+    #CNN with layer-wise feature extraction
     def __init__(self, num_classes=10):
         super().__init__()
         self.num_classes = num_classes

@@ -17,7 +17,7 @@ class ProgressBar:
         elapsed_total = current_time - self.start_time
         progress_pct = (epoch + 1) / self.num_epochs
         
-        # FIXED ETA calculation using per-epoch timing
+        # ETA calculation using per-epoch timing
         epoch_time = elapsed_total.total_seconds()
         self.epoch_times.append(epoch_time)
         
@@ -41,7 +41,7 @@ class ProgressBar:
         if nc4 is not None: nc_metrics.append(f"NC4:{nc4:.3f}")
         nc_str = " | ".join(nc_metrics) if nc_metrics else "NC: -"
         
-        # FIXED time formatting
+        # time formatting
         elapsed_mins = int(elapsed_total.total_seconds() // 60)
         elapsed_secs = int(elapsed_total.total_seconds() % 60)
         elapsed_str = f"{elapsed_mins:02d}:{elapsed_secs:02d}"
