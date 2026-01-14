@@ -9,10 +9,6 @@ Laboratory repository for the Quantitative Evaluation of Neural Networks, focuse
 The objective of this project is not merely to observe Neural Collapse but to explore its emergence through ablation studies and layer-wise analysis. 
 By varying optimization methods and training regimes, we investigate which components of the learning dynamics are necessary and sufficient for the Neural Collaps regime to appear and how it progressiely forms across network layers.
 
-
->Zhu, Z., Ding, T., Zhou, J., Li, X., You, C., Sulam, J., & Qu, Q. (2021).  *A Geometric Analysis of Neural Collapse with Unconstrained Features*. International Conference on Learning Representations (ICLR).
-
-
 This project enables controlled experiments to answer:
 
 - *Which layers collapse first?*
@@ -32,27 +28,8 @@ python main_nc.py
 ```
 > Please, always check if the configuration file it's correct
 </details>
-
- 🧪 Experiment 1 — Baseline Neural Collapse with SGD
-
-As a first experiment, we reproduce the **canonical Neural Collapse setting** described by Papyan et al. (2020) by training a **CNN-1D on MNIST-1D using standard SGD** for a sufficiently long horizon (200 epochs).
-The goal of this experiment is to establish a **reference collapse trajectory** in which:
-- training reaches the **interpolation regime**,
-- the **Training Phase Transition (TPT)** is crossed,
-- and the network converges toward the **Neural Collapse fixed point**.
-
-During training we track the four core Neural Collapse metrics:
-
-
-| Metric | Interpretation |
-|--------|----------------|
-| **NC1** | Within-class feature collapse |
-| **NC2** | ETF structure of class means |
-| **NC3** | Duality between classifier weights and class centroids |
-| **NC4** | Nearest Class Center optimality |
-
-<details> 
-<summary> 🏗 Model Architecture — CNN-1D</summary>
+<details>
+<summary>Model Architecture — CNN-1D</summary>
 
 
 All experiments use a fixed **CNN-1D** architecture specifically designed to expose a **high-dimensional penultimate feature space** where Neural Collapse can be measured.
@@ -79,6 +56,28 @@ Linear Classifier
 (128 → 10)
 ```
 </details>
+<br>
+
+
+ ## 🧪 Experiment 1 — Baseline Neural Collapse with SGD
+
+As a first experiment, we reproduce the **canonical Neural Collapse setting** described by Papyan et al. (2020) by training a **CNN-1D on MNIST-1D using standard SGD** for a sufficiently long horizon (200 epochs).
+The goal of this experiment is to establish a **reference collapse trajectory** in which:
+- training reaches the **interpolation regime**,
+- the **Training Phase Transition (TPT)** is crossed,
+- and the network converges toward the **Neural Collapse fixed point**.
+
+During training we track the four core Neural Collapse metrics:
+
+
+| Metric | Interpretation |
+|--------|----------------|
+| **NC1** | Within-class feature collapse |
+| **NC2** | ETF structure of class means |
+| **NC3** | Duality between classifier weights and class centroids |
+| **NC4** | Nearest Class Center optimality |
+
+
 <details> <summary>Training Dynamics </summary>
 <div align="center">
 <img src="img/20260112_203458/20260112_203458_1_training_metrics.png" width="800"/>
@@ -96,5 +95,32 @@ This phase transition is where Neural Collapse is theoretically expected to begi
 The four Neural Collapse conditions are measured during training:
 All metrics converge after the TPT, confirming that the network enters the **Neural Collapse regime** predicted by theory.
 </details>
+<br>
+
+## 🧪 Experiment 2 — Layer-wise Emergence of Neural Collapse
+
+Neural Collapse is formally defined at the **penultimate layer**, where the cross-entropy loss directly enforces class separation and margin maximization.  
+For this reason, the theory does not require earlier layers to satisfy Neural Collapse conditions.
+Our layer-wise analysis reveals that:
+- early convolutional layers do **not** exhibit strong within-class collapse or ETF geometry,
+- intermediate layers progressively approach the Neural Collapse regime,
+- the penultimate layer fully satisfies all NC conditions.
+
+<details> <summary>Neural Collapse Metrics </summary>
+
+*Layer-wise evolution of Neural Collapse metrics (NC1, NC2, NC4). Neural Collapse emerges progressively with network depth, reaching full manifestation at the penultimate layer.*
+<br>
+<div align="center">
+<img src="img/20260113_182532/20260113_182532_4_layerwise_nc.png.png" width="600"/>
+</div>
 
 
+
+</details>
+
+<br>
+
+## 🧪 Experiment 3 — Optimization Effects on Neural Collapse
+
+
+>Zhu, Z., Ding, T., Zhou, J., Li, X., You, C., Sulam, J., & Qu, Q. (2021).  *A Geometric Analysis of Neural Collapse with Unconstrained Features*. International Conference on Learning Representations (ICLR).

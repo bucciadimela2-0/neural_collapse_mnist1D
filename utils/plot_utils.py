@@ -361,3 +361,68 @@ def plot_optimizer_comparison(results, out_dir=None, run_ts=None,
         "nc_fig": path3,
     }
 
+def plot_layerwise_grid(history, layer_names, out_dir, run_ts, name="4_layerwise_nc.png"):
+    """
+    Plot grid: Layers (rows) × NC Metrics (columns)
+    """
+
+    if out_dir is None or run_ts is None:
+        out_dir, run_ts = make_img_dir("img")
+
+    fig, axes = plt.subplots(len(layer_names), 3, figsize=(15, 3*len(layer_names)))
+    
+    epochs = np.array(history['global']['epoch'])
+    colors = plt.cm.viridis(np.linspace(0, 1, len(layer_names)))
+    
+    metrics_to_plot = ['NC1', 'NC2', 'NC4']
+    metric_titles = ['NC1: Within-Class Collapse', 'NC2: ETF Convergence', 'NC4: NCC Accuracy']
+    
+    for row_idx, layer_name in enumerate(layer_names):
+        for col_idx, (metric, title) in enumerate(zip(metrics_to_plot, metric_titles)):
+            ax = axes[row_idx, col_idx] if len(layer_names) > 1 else axes[col_idx]
+            
+            values = np.array(history[layer_name][metric])
+            
+            # Plot line
+            ax.plot(epochs, values, 
+                   color=colors[row_idx], 
+                   linewidth=2.5, 
+                   marker='o', 
+                   markersize=4,
+                   alpha=0.8)
+            
+            # Styling
+            if metric == 'NC1':
+                ax.set_yscale('log')
+                ax.set_ylabel('NC1 (log)', fontweight='bold')
+            else:
+                ax.set_ylabel(metric, fontweight='bold')
+            
+            # Title with layer name
+            if col_idx == 0:
+                ax.set_ylabel(f'{layer_name}\n{metric}', fontweight='bold', fontsize=10)
+            
+            if row_idx == 0:
+                ax.set_title(title, fontweight='bold', fontsize=11)
+            
+            if row_idx == len(layer_names) - 1:
+                ax.set_xlabel('Epoch', fontweight='bold')
+            
+            ax.grid(True, alpha=0.3, linestyle='--')
+            
+            # Final value annotation
+            final_val = values[-1]
+            ax.text(0.98, 0.95, f'{final_val:.3f}', 
+                   transform=ax.transAxes,
+                   ha='right', va='top',
+                   fontsize=9, fontweight='bold',
+                   bbox=dict(boxstyle='round,pad=0.3', 
+                           facecolor='yellow', alpha=0.6))
+    
+    plt.suptitle('Layer-wise Neural Collapse Evolution', 
+                fontsize=14, fontweight='bold', y=0.995)
+    plt.tight_layout()
+    path = _savefig(fig, out_dir, run_ts, name=name, dpi=300, facecolor="white", edgecolor="none")
+    plt.show()
+    
+    plt.show()

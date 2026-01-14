@@ -135,4 +135,26 @@ def compute_nc_metrics(model, loader, device):
         'NC4_ncc': nc4,
         'NC5_volume': nc5
     }, H, class_means
+    
+def compute_layer_nc_metrics(layer_features, labels, num_classes=10):
+    """Compute NC metrics for each layer"""
+    metrics = {}
+    
+    for layer_name, H in layer_features.items():
+        # NC1: Within-class collapse
+        nc1 = compute_nc1(H, labels, num_classes)
+        
+        # NC2: ETF convergence
+        nc2, means_norm = compute_nc2(H, labels, num_classes)
+        
+        # NC4: NCC accuracy
+        nc4 = compute_nc4(H, means_norm, labels)
+        
+        metrics[layer_name] = {
+            'NC1': nc1,
+            'NC2': nc2,
+            'NC4': nc4
+        }
+    
+    return metrics
 
