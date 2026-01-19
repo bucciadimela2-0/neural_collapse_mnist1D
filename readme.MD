@@ -122,7 +122,7 @@ During training we track the four core Neural Collapse metrics:
 
 <details> <summary>Training Dynamics </summary>
 <div align="center">
-<img src="img/20260112_203458/20260112_203458_1_training_metrics.png" width="800"/>
+<img src="img/20260114_212027/20260114_212027_1_training_metrics.png" width="800"/>
 </div>
 
 The dashed vertical line marks the **TPT**, after which training accuracy saturates and the loss enters a low-noise regime.  
@@ -131,7 +131,7 @@ This phase transition is where Neural Collapse is theoretically expected to begi
 <details> <summary>Neural Collapse Metrics </summary>
 
 <div align="center">
-<img src="img/20260112_203458/20260112_203458_2_nc_metrics.png" width="900"/>
+<img src="img/20260114_212027/20260114_212027_2_nc_metrics.png" width="900"/>
 </div>
 
 The four Neural Collapse conditions are measured during training:
@@ -175,6 +175,33 @@ https://arxiv.org/abs/2308.02760
 ## 🧪 Experiment 3 — Optimization Effects on Neural Collapse
 
 In this experiment, we investigate how different optimization algorithms affect the emergence and stability of Neural Collapse.
-While Neural Collapse is often studied under standard SGD, recent theoretical work suggests that its geometric properties may persist across a broader class of training dynamics.
+While Neural Collapse is most commonly studied under standard stochastic gradient descent (SGD), recent theoretical work suggests that its geometric properties may persist across a broader class of optimization dynamics.
 
->Zhu, Z., Ding, T., Zhou, J., Li, X., You, C., Sulam, J., & Qu, Q. (2021).  *A Geometric Analysis of Neural Collapse with Unconstrained Features*. International Conference on Learning Representations (ICLR).
+> Zhu, Z., Ding, T., Zhou, J., Li, X., You, C., Sulam, J., & Qu, Q. (2021).  
+> *A Geometric Analysis of Neural Collapse with Unconstrained Features*.  
+> International Conference on Learning Representations (ICLR).
+
+Our empirical results **corroborate the main claims of Zhu et al. (2021)**:
+- Neural Collapse consistently emerges under **SGD** and **Adam**, despite their different update rules and stochasticity,
+- all core NC metrics (NC1–NC4) converge after the Training Phase Transition (TPT),
+- the final feature geometry is largely optimizer-invariant for first-order methods.
+<details> <summary>Training Dynamics </summary>
+<div align="center">
+  <img src="img/20260119_174500/20260119_174500_opt_comparison_train_loss.png" width="300"/>
+  <img src="img/20260119_174500/20260119_174500_opt_comparison_val_accuracy.png" width="300"/>
+   <p><em>Left: Train loss (log-scale) | Right: Validation accuracy across optimizers</em></p>
+</div>
+</details> 
+<details> <summary>Neural Collapse Metrics </summary>
+
+Figure compares the evolution of Neural Collapse metrics under SGD and Adam.
+While Neural Collapse is classically studied under SGD, our results show that its geometric structure partially persists under Adam, corroborating recent theoretical findings.
+
+<br>
+<div align= "center">
+<img src = "img/20260119_174500/20260119_174500_opt_comparison_nc_metrics.png" width="800"/>
+</div>
+
+</details> 
+
+

@@ -34,20 +34,26 @@ def main():
 
     # Device selection
     # Use string ('cuda' / 'cpu') for compatibility across modules
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    if torch.cuda.is_available():
+        device = "cuda"
+    elif torch.backends.mps.is_available():
+        device = "mps"
+    else:
+        device = "cpu"
+
     print(f"Using device: {device}")
  
     # Optimizers for Experiment 3
-    optimizer_list = ["SGD", "Adam", "LBFGS"]
+    optimizer_list = ["SGD", "Adam"]
 
     # EXPERIMENT 1 — Baseline Neural Collapse (SGD)
-    run_standard(
-        x_train, y_train,
-        x_test, y_test,
-        IMG_DIR=IMG_DIR,
-        RUN_TS=RUN_TS,
-        device=device
-    )
+    #run_standard(
+    #    x_train, y_train,
+    #    x_test, y_test,
+    #    IMG_DIR=IMG_DIR,
+    #    RUN_TS=RUN_TS,
+     #   device=device
+    #)
 
     
     # EXPERIMENT 2 — Layer-wise Emergence of Neural Collapse
@@ -65,14 +71,14 @@ def main():
     # EXPERIMENT 3 — Optimization Effects on Neural Collapse
    
     # Uncomment to run
-    # run_optimizer_comparison(
-    #     x_train, y_train,
-    #     x_test, y_test,
-    #     IMG_DIR=IMG_DIR,
-    #     RUN_TS=RUN_TS,
-    #     optimizer_list=optimizer_list,
-    #     device=device
-    # )
+    run_optimizer_comparison(
+         x_train, y_train,
+         x_test, y_test,
+         IMG_DIR=IMG_DIR,
+         RUN_TS=RUN_TS,
+         optimizer_list=optimizer_list,
+         device=device
+     )
 
 
 if __name__ == "__main__":

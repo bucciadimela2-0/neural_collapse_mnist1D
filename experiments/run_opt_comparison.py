@@ -10,7 +10,7 @@ def run_optimizer_comparison(
     x_train, y_train, x_test, y_test,
     IMG_DIR, RUN_TS,
     optimizer_list=None,
-    num_epochs=300,
+    num_epochs=200,
     device="cpu"
 ):
     
@@ -19,7 +19,7 @@ def run_optimizer_comparison(
     
 
     if optimizer_list is None:
-        optimizer_list = ["SGD", "Adam", "LBFGS"]
+        optimizer_list = ["SGD", "Adam"]
 
    
     log_path = os.path.join(IMG_DIR, f"{RUN_TS}_experiment3_opt_comparison.log")

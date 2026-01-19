@@ -19,11 +19,23 @@ class CNN1D(nn.Module):
         self.last_features = None
 
     def get_features(self, x):
-        if x.dim() == 2: x = x.unsqueeze(1)
+        if x.dim() == 2:
+            x = x.unsqueeze(1)
+
         x = self.conv_layers(x)
-        x = self.global_pool(x).flatten(1)
+
+        # Workaround for MPS adaptive pooling limitation
+        if x.device.type == "mps":
+            x = x.cpu()
+            x = self.global_pool(x)
+            x = x.to("mps")
+        else:
+            x = self.global_pool(x)
+
+        x = x.flatten(1)
         feats = self.feature_transform(x)
         return feats
+
 
     def forward(self, x):
         feats = self.get_features(x)

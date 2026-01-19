@@ -254,10 +254,15 @@ def plot_geometric_analysis(model, metrics, H, means, y_test, out_dir, run_ts, n
 
 
 
-# Comparison plots (multi-optimizer)
-def plot_optimizer_comparison(results, out_dir=None, run_ts=None,
-                              name_prefix="opt_comparison",
-                              include_nc=True, include_loss=True):
+def plot_optimizer_comparison(
+    results,
+    out_dir=None,
+    run_ts=None,
+    name_prefix="opt_comparison",
+    show=True,
+    dpi=300,
+):
+    
 
     if out_dir is None or run_ts is None:
         out_dir, run_ts = make_img_dir("img")
@@ -265,99 +270,119 @@ def plot_optimizer_comparison(results, out_dir=None, run_ts=None,
     opts = list(results.keys())
     histories = {opt: _history_to_arrays(results[opt]["history"]) for opt in opts}
 
-    # -------- FIG 1: Accuracy --------
+
+    def _style_axis(ax, title, xlabel="Epoch", ylabel=None):
+        ax.set_title(title, fontweight="bold")
+        ax.set_xlabel(xlabel)
+        if ylabel is not None:
+            ax.set_ylabel(ylabel)
+        ax.grid(True, alpha=0.15)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+
+   
+    # FIG 1 — Train Loss (log)
+   
     fig1, ax1 = plt.subplots(figsize=(10.5, 5.2))
+
+    any_loss = False
     for opt in opts:
         h = histories[opt]
-        if not _has_series(h, "epoch") or not _has_series(h, "test_acc"):
-            continue
-        ax1.plot(h["epoch"], h["test_acc"], linewidth=2, label=f"{opt} (test)")
-        if _has_series(h, "train_acc"):
-            ax1.plot(h["epoch"], h["train_acc"], linewidth=1, linestyle="--", alpha=0.7, label=f"{opt} (train)")
+        if _has_series(h, "epoch") and _has_series(h, "train_loss"):
+            any_loss = True
+            x, y = _align_series(h["epoch"], h["train_loss"])
+            ax1.plot(x, y, linewidth=2, label=opt)
 
-    ax1.set_title("Optimizer Comparison — Accuracy", fontweight="bold")
-    ax1.set_xlabel("Epoch")
-    ax1.set_ylabel("Accuracy")
-    ax1.grid(True, alpha=0.2)
-    ax1.set_ylim(0.0, 1.02)
-    ax1.legend(ncol=2, frameon=True)
-    path1 = _savefig(fig1, out_dir, run_ts, f"{name_prefix}_accuracy")
-    plt.show()
+    _style_axis(ax1, "Optimizer Comparison — Train Loss", ylabel="Train Loss")
+    if any_loss:
+        ax1.set_yscale("log")
 
-    # -------- FIG 2: Loss --------
-    path2 = None
-    if include_loss:
-        fig2, ax2 = plt.subplots(figsize=(10.5, 5.2))
-        any_loss = False
+    ax1.legend(frameon=True, ncol=2)
+    path1 = _savefig(fig1, out_dir, run_ts, f"{name_prefix}_train_loss", dpi=dpi)
+    if show:
+        plt.show()
+    else:
+        plt.close(fig1)
+
+    
+    # FIG 2 — Validation Accuracy
+    fig2, ax2 = plt.subplots(figsize=(10.5, 5.2))
+
+    for opt in opts:
+        h = histories[opt]
+        if _has_series(h, "epoch") and _has_series(h, "test_acc"):
+            x, y = _align_series(h["epoch"], h["test_acc"])
+            ax2.plot(x, y, linewidth=2, label=opt)
+
+    _style_axis(ax2, "Optimizer Comparison — Validation Accuracy", ylabel="Val Accuracy")
+    ax2.set_ylim(0.0, 1.02)
+    ax2.legend(frameon=True, ncol=2)
+    path2 = _savefig(fig2, out_dir, run_ts, f"{name_prefix}_val_accuracy", dpi=dpi)
+    if show:
+        plt.show()
+    else:
+        plt.close(fig2)
+
+    # FIG 3 — NC Metrics (NC1–NC4)
+  
+    nc_keys = ["NC1_collapse", "NC2_etf", "NC3_duality", "NC4_ncc"]
+  
+
+    n = len(nc_keys)
+    fig3, axes = plt.subplots(1, n, figsize=(4.6 * n, 4.0), sharex=True)
+    if n == 1:
+        axes = [axes]
+
+    for j, k in enumerate(nc_keys):
+        ax = axes[j]
+
+        # Plot metric per optimizer
         for opt in opts:
             h = histories[opt]
-            if _has_series(h, "epoch") and _has_series(h, "val_loss"):
-                any_loss = True
-                ax2.plot(h["epoch"], h["val_loss"], linewidth=2, label=f"{opt} (val)")
-            if _has_series(h, "epoch") and _has_series(h, "train_loss"):
-                any_loss = True
-                ax2.plot(h["epoch"], h["train_loss"], linewidth=1, linestyle="--", alpha=0.7, label=f"{opt} (train)")
+            if _has_series(h, "epoch") and _has_series(h, k):
+                x, y = _align_series(h["epoch"], h[k])
+                ax.plot(x, y, linewidth=2, label=opt)
 
-        ax2.set_title("Optimizer Comparison — Loss", fontweight="bold")
-        ax2.set_xlabel("Epoch")
-        ax2.set_ylabel("Loss")
-        ax2.grid(True, alpha=0.2)
-        if any_loss:
-            ax2.set_yscale("log")
-        ax2.legend(ncol=2, frameon=True)
-        path2 = _savefig(fig2, out_dir, run_ts, f"{name_prefix}_loss")
+        # TPT markers (light, not intrusive)
+        for opt in opts:
+            tpt = results[opt].get("tpt_epoch", None)
+            if tpt is not None:
+                ax.axvline(tpt, linestyle="--", linewidth=1, alpha=0.25)
+
+        # Titles (cleaner than raw key)
+        pretty = {
+            "NC1_collapse": "NC1 (Collapse)",
+            "NC2_etf": "NC2 (ETF)",
+            "NC3_duality": "NC3 (Duality)",
+            "NC4_ncc": "NC4 (NCC)",
+            
+        }.get(k, k)
+
+        _style_axis(ax, pretty, ylabel="Value" if j == 0 else None)
+
+        # Scaling choices
+        if k == "NC1_collapse":
+            ax.set_yscale("log")
+        elif k in ("NC2_etf", "NC4_ncc"):
+            ax.set_ylim(0.0, 1.05)
+
+    # Single legend for entire figure (more professional)
+    handles, labels = axes[-1].get_legend_handles_labels()
+    fig3.legend(handles, labels, loc="upper center", ncol=min(4, len(opts)), frameon=True)
+    fig3.suptitle("Optimizer Comparison — Neural Collapse Metrics", fontweight="bold", y=1.08)
+    fig3.tight_layout()
+
+    path3 = _savefig(fig3, out_dir, run_ts, f"{name_prefix}_nc_metrics", dpi=dpi)
+    if show:
         plt.show()
-
-    # -------- FIG 3: NC metrics --------
-    path3 = None
-    if include_nc:
-        nc_keys = ["NC1_collapse", "NC2_etf", "NC3_duality", "NC4_ncc"]
-        if any(_has_series(histories[o], "NC5_volume") for o in opts):
-            nc_keys.append("NC5_volume")
-
-        n = len(nc_keys)
-        fig3, axes = plt.subplots(1, n, figsize=(4.8 * n, 4.2), sharex=True)
-        if n == 1:
-            axes = [axes]
-
-        for j, k in enumerate(nc_keys):
-            ax = axes[j]
-            for opt in opts:
-                h = histories[opt]
-                if _has_series(h, "epoch") and _has_series(h, k):
-                    x, y = _align_series(h["epoch"], h[k])
-                    ax.plot(x, y, linewidth=2, label=opt)
-
-            ax.set_title(k, fontweight="bold")
-            ax.set_xlabel("Epoch")
-            if j == 0:
-                ax.set_ylabel("Value")
-            ax.grid(True, alpha=0.2)
-
-            if k == "NC1_collapse":
-                ax.set_yscale("log")
-            elif k in ("NC2_etf", "NC4_ncc", "NC5_volume"):
-                ax.set_ylim(0.0, 1.05)
-
-            # TPT lines 
-            for opt in opts:
-                tpt = results[opt].get("tpt_epoch", None)
-                if tpt is not None:
-                    ax.axvline(tpt, linestyle="--", linewidth=1, alpha=0.3)
-
-            if j == n - 1:
-                ax.legend(frameon=True)
-
-        fig3.suptitle("Optimizer Comparison — Neural Collapse Metrics", fontweight="bold", y=1.02)
-        fig3.tight_layout()
-        path3 = _savefig(fig3, out_dir, run_ts, f"{name_prefix}_nc")
-        plt.show()
+    else:
+        plt.close(fig3)
 
     return {
         "out_dir": out_dir,
         "run_ts": run_ts,
-        "accuracy_fig": path1,
-        "loss_fig": path2,
+        "train_loss_fig": path1,
+        "val_accuracy_fig": path2,
         "nc_fig": path3,
     }
 

@@ -24,7 +24,12 @@ def train(
 
     train_ds = TensorDataset(torch.FloatTensor(x_train), torch.LongTensor(y_train))
     test_ds  = TensorDataset(torch.FloatTensor(x_test),  torch.LongTensor(y_test))
-    train_loader = DataLoader(train_ds, 128, shuffle=True)
+   # train_loader = DataLoader(train_ds, 128, shuffle=True)
+    if optimizer_name == "LBFGS":
+        train_loader = DataLoader(train_ds, len(train_ds), shuffle=False)
+    else:
+        train_loader = DataLoader(train_ds, 128, shuffle=True)
+
     test_loader  = DataLoader(test_ds, 256, shuffle=False)
 
     model = model.to(device)
@@ -152,8 +157,9 @@ def get_optimizer(model, optimizer_name):
     #create optimizer
     optimizers = {
         'SGD': lambda: optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4),
-        'Adam': lambda: optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-4),
-        'LBFGS': lambda: optim.LBFGS(model.parameters(), lr=0.1, max_iter=20, history_size=10),
+        'Adam': lambda: optim.Adam(model.parameters(), lr=0.1, weight_decay=5e-4),
+       # 'LBFGS': lambda: optim.LBFGS(model.parameters(), lr=0.1, max_iter=1, history_size=10, line_search_fn=None, tolerance_grad=1e-7,  
+    #tolerance_change=1e-12),
     }
     
     if optimizer_name not in optimizers:
@@ -198,33 +204,33 @@ def train_epoch_standard(model, loader, optimizer, criterion, device):
 
 
 def train_epoch_lbfgs(model, loader, optimizer, criterion, device):
-    #Training epoch for L-BFGS which requires closure
     model.train()
-    total_loss, correct, total = 0, 0, 0
     
+    # Accumula tutto il batch
+    X, Y = [], []
     for xb, yb in loader:
-        xb, yb = xb.to(device), yb.to(device)
-        
-        def closure():
-            optimizer.zero_grad()
-            logits = model(xb)
-            loss = criterion(logits, yb)
-            loss.backward()
-            return loss
-        
-        loss = optimizer.step(closure)
-        
-        with torch.no_grad():
-            logits = model(xb)
-            total_loss += loss.item()
-            pred = logits.argmax(1)
-            correct += (pred == yb).sum().item()
-            total += yb.size(0)
+        X.append(xb)
+        Y.append(yb)
     
-    avg_loss = total_loss / len(loader)
-    accuracy = correct / total
-    
-    return avg_loss, accuracy
+    X = torch.cat(X).to(device)
+    Y = torch.cat(Y).to(device)
+
+    def closure():
+        optimizer.zero_grad()
+        logits = model(X)
+        loss = criterion(logits, Y)
+        loss.backward()
+        return loss
+
+    loss = optimizer.step(closure)
+
+    with torch.no_grad():
+        logits = model(X)
+        pred = logits.argmax(1)
+        accuracy = (pred == Y).float().mean().item()
+
+    return loss.item(), accuracy
+
 
 def evaluate(model, loader, criterion, device):
     #Evaluation on test set
